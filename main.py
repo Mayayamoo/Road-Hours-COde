@@ -1,39 +1,81 @@
-
 import random
-#required variabes, input the prefered hours and minutes driving can occur at, then length of drive
-hour= [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-minute = [0, 15, 30, 45, 20, 40]
-length = [20, 30, 40, 45, 60, 75]
-#accompanying driver
-p = ["mom", "dad"]
-#needed for to calculate hours left
-x= 0
-y= 0
-# adds weight to length and accompanying driver variables
-lengths=(random.choices(length, weights=[20, 25, 30, 15 ,5, 5], k=6))
-pa=random.choices(p,weights=[80,20], k=2)
 
-# x = day hours needed, y = night hours needed, program will calculate a set of times driving occured at, how long and with who. the program will execute until day and night hour conditions are met
-while ((int(x) < 3000) or (int(y) < 600)):
-    guz=str(random.choice(minute))
-    times = str(random.choice(lengths))
-    hours=str(random.choice(hour))
-    if guz == str(0):
-        print (hours + " O' clock" + " for " + times + " minutes. Driving with " + random.choice(pa))
+# Constants
+HOURS = list(range(6, 21))  # 6 AM to 8 PM
+MINUTES = [0, 15, 20, 30, 40, 45]
+DRIVE_LENGTHS = [20, 30, 40, 45, 60, 75]
+LENGTH_WEIGHTS = [20, 25, 30, 15, 5, 5]
+DRIVERS = ["mom", "dad"]
+DRIVER_WEIGHTS = [80, 20]
+
+# Target Goals (in minutes)
+DAY_TARGET = 3000
+NIGHT_TARGET = 600
+
+# Tracking progress
+day_minutes = 0
+night_minutes = 0
+
+# History log of all drives
+driving_log = []
+
+# Helper functions
+def select_random_time():
+    hour = random.choice(HOURS)
+    minute = random.choice(MINUTES)
+    return hour, minute
+
+def select_drive_length():
+    return random.choices(DRIVE_LENGTHS, weights=LENGTH_WEIGHTS, k=1)[0]
+
+def select_driver():
+    return random.choices(DRIVERS, weights=DRIVER_WEIGHTS, k=1)[0]
+
+def is_night(hour):
+    return hour >= 18  # 6 PM and later is night
+
+# Simulation loop
+while day_minutes < DAY_TARGET or night_minutes < NIGHT_TARGET:
+    hour, minute = select_random_time()
+    drive_length = select_drive_length()
+    driver = select_driver()
+
+    # Save drive info into the log
+    drive_record = {
+        "hour": hour,
+        "minute": minute,
+        "length": drive_length,
+        "driver": driver,
+        "is_night": is_night(hour)
+    }
+    driving_log.append(drive_record)
+
+    # Update totals
+    if drive_record["is_night"]:
+        night_minutes += drive_length
     else:
-        print (hours +":" + guz + " for " + times + " minutes. Driving with " + random.choice(pa))
-    if int(hours) >= int(18):
-        hours = y
-        y = int(y) + int(times)
-        minutesy = int(y)/60
-        
-    if int(hours) <= int(17):
-        hours = x
-        x = int(x) + int(times)
-        minutesx = int(x)/60
+        day_minutes += drive_length
 
-    #prints the amount of hours done at this point
-    #extra note, for some reason night hours sometimes wont print and shows an error, if you just keep trying to run it itll print eventually, i dont know why. oh! could be because there arent any night hours at that point and it cant print 0?
-    #seems that if the function does run itll add the hours to both the day and night hours, weird because it only does this for the first line, this issue does not happen again, will have to check this later?
-    print ("Day Hours: " + str(minutesx))
-    print ("Night Hours: " + str(minutesy))
+    # Optional: Print each drive immediately
+    if minute == 0:
+        print(f"{hour} O'clock for {drive_length} minutes. Driving with {driver}.")
+    else:
+        print(f"{hour}:{minute:02d} for {drive_length} minutes. Driving with {driver}.")
+
+    # Print progress
+    print(f"Day Hours: {day_minutes/60:.2f}")
+    print(f"Night Hours: {night_minutes/60:.2f}\n")
+
+# --- After simulation ends ---
+
+# Final Summary
+print("\n✅ All Drives Summary:\n")
+
+for i, drive in enumerate(driving_log, start=1):
+    time_str = f"{drive['hour']}:{drive['minute']:02d}" if drive['minute'] != 0 else f"{drive['hour']} o'clock"
+    day_night = "Night" if drive["is_night"] else "Day"
+    print(f"Drive {i}: {time_str}, {drive['length']} minutes, with {drive['driver']} ({day_night})")
+
+# Final totals
+print(f"\n🏁 Final Total Day Hours: {day_minutes/60:.2f}")
+print(f"🏁 Final Total Night Hours: {night_minutes/60:.2f}")
